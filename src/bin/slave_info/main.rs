@@ -5,6 +5,7 @@ use clap::{App, Arg};
 use soem::*;
 use std::default::Default;
 use std::os::raw::c_int;
+use std::mem::zeroed;
 
 fn main() {
 	let mut port: Port = Default::default();
@@ -28,7 +29,8 @@ fn main() {
 		.author("Matwey V. Kornilov <matwey.kornilov@gmail.com>")
 		.arg(Arg::with_name("iface").required(true))
 		.get_matches();
-	
+
+	let mut io_map: [u8; 4096] = unsafe { zeroed() };
 
 	let mut c = Context::new(matches.value_of("iface").unwrap(),
 		&mut port,
@@ -48,4 +50,5 @@ fn main() {
 		&mut eep_fmmu).unwrap();
 
 	c.config_init(false).unwrap();
+	c.config_map_group(&mut io_map, 0);
 }

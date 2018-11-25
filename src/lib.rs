@@ -21,6 +21,7 @@ use SOEM_sys::{
 	ec_slave,
 	ecx_close,
 	ecx_config_init,
+	ecx_config_map_group,
 	ecx_context,
 	ecx_init,
 	ecx_portt,
@@ -261,5 +262,12 @@ impl<'a> Context<'a> {
 			x if x > 0 => Ok(x as usize),
 			x => Err(Error::from_code(x).unwrap()),
 		}
+	}
+
+	pub fn config_map_group(&mut self, io_map : &'a mut [u8; 4096], group : u8) -> usize {
+		unsafe { ecx_config_map_group(
+			&mut self.context,
+			io_map.as_mut_ptr() as *mut std::ffi::c_void,
+			group as UInt8) as usize }
 	}
 }
