@@ -30,7 +30,7 @@ fn main() {
 		.get_matches();
 	
 
-	let c = Context::new(matches.value_of("iface").unwrap(),
+	let mut c = Context::new(matches.value_of("iface").unwrap(),
 		&mut port,
 		&mut slaves,
 		&mut slavecount,
@@ -47,4 +47,5 @@ fn main() {
 		&mut eep_sm,
 		&mut eep_fmmu).unwrap();
 
+	c.config_init(false).unwrap();
 }

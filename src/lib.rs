@@ -20,6 +20,7 @@ use SOEM_sys::{
 	ec_idxstack,
 	ec_slave,
 	ecx_close,
+	ecx_config_init,
 	ecx_context,
 	ecx_init,
 	ecx_portt,
@@ -49,13 +50,30 @@ pub type UInt8 = uint8;
 #[derive(Debug)]
 pub enum Error {
 	InitError,
+	EtherCatNoFrame,
+	EtherCatOtherFrame,
+	EtherCatError,
 	CStringError(NulError),
+}
+
+impl Error {
+	fn from_code(x : i32) -> result::Result<Error, i32> {
+		match x {
+			-1 => Ok(Error::EtherCatNoFrame),
+			-2 => Ok(Error::EtherCatOtherFrame),
+			-3 => Ok(Error::EtherCatError),
+			x  => Err(x),
+		}
+	}
 }
 
 impl fmt::Display for Error {
 	fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
 		match *self {
-			Error::InitError => write!(f, "Initialization error"),
+			Error::InitError          => write!(f, "Initialization error"),
+			Error::EtherCatNoFrame    => write!(f, "No frame returned"),
+			Error::EtherCatOtherFrame => write!(f, "Unknown frame returned"),
+			Error::EtherCatError      => write!(f, "General EtherCat error"),
 			Error::CStringError(ref err) => write!(f, "CString error: {}", err),
 		}
 	}
@@ -232,9 +250,16 @@ impl<'a> Context<'a> {
 			.map_err(|err| Error::CStringError(err))
 			.and_then(|iface| {
 				match unsafe { ecx_init(&mut c.context, iface.as_ptr()) } {
-					1 => Ok(c),
+					x if x > 0 => Ok(c),
 					_ => Err(Error::InitError),
 				}
 			})
+	}
+
+	pub fn config_init(&mut self, usetable : bool) -> Result<usize> {
+		match unsafe { ecx_config_init(&mut self.context, usetable as UInt8) } {
+			x if x > 0 => Ok(x as usize),
+			x => Err(Error::from_code(x).unwrap()),
+		}
 	}
 }
