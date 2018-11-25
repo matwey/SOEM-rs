@@ -5,4 +5,5 @@ authors = ["Matwey V. Kornilov <matwey.kornilov@gmail.com>"]
 license = "GPL-2.0-only"
 
 [dependencies]
+clap = "2.32.0"
 SOEM-sys = "0.1.1"

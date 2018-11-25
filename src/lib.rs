@@ -32,8 +32,6 @@ use SOEM_sys::{
 	uint8,
 };
 
-pub mod context;
-
 /** size of EEPROM bitmap cache */
 const EC_MAXEEPBITMAP : usize = 128;
 /** size of EEPROM cache buffer */

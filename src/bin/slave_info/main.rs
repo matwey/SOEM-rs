@@ -1,6 +1,9 @@
 extern crate soem;
-use std::default::Default;
+extern crate clap;
+
+use clap::{App, Arg};
 use soem::*;
+use std::default::Default;
 use std::os::raw::c_int;
 
 fn main() {
@@ -20,7 +23,14 @@ fn main() {
 	let mut eep_sm: EEPROMSM = Default::default();
 	let mut eep_fmmu: EEPROMFMMU = Default::default();
 
-	let c = Context::new("eth2",
+	let matches = App::new("EtherCat slave info")
+		.version("1.0")
+		.author("Matwey V. Kornilov <matwey.kornilov@gmail.com>")
+		.arg(Arg::with_name("iface").required(true))
+		.get_matches();
+	
+
+	let c = Context::new(matches.value_of("iface").unwrap(),
 		&mut port,
 		&mut slaves,
 		&mut slavecount,
