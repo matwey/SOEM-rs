@@ -22,6 +22,7 @@ use SOEM_sys::{
 	ecx_close,
 	ecx_config_init,
 	ecx_config_map_group,
+	ecx_configdc,
 	ecx_context,
 	ecx_init,
 	ecx_portt,
@@ -269,5 +270,9 @@ impl<'a> Context<'a> {
 			&mut self.context,
 			io_map.as_mut_ptr() as *mut std::ffi::c_void,
 			group as UInt8) as usize }
+	}
+
+	pub fn config_dc(&mut self) -> bool {
+		unsafe { ecx_configdc(&mut self.context) != 0 }
 	}
 }

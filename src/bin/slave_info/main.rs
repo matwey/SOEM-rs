@@ -51,4 +51,5 @@ fn main() {
 
 	c.config_init(false).unwrap();
 	c.config_map_group(&mut io_map, 0);
+	c.config_dc();
 }
