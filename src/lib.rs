@@ -275,4 +275,8 @@ impl<'a> Context<'a> {
 	pub fn config_dc(&mut self) -> bool {
 		unsafe { ecx_configdc(&mut self.context) != 0 }
 	}
+
+	pub fn slave_count(&mut self) -> usize {
+		unsafe { *self.context.slavecount as usize }
+	}
 }
