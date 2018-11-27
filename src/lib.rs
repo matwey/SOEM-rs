@@ -1,12 +1,21 @@
 extern crate SOEM_sys;
+extern crate boolinator;
+
+mod error;
+
+use boolinator::Boolinator;
 
 use std::marker::PhantomData;
 use std::default::Default;
 use std::mem::zeroed;
 use std::os::raw::c_int;
-use std::ffi::{CString, NulError};
-use std::fmt;
+use std::ffi::{CString, CStr};
 use std::result;
+use std::ops::Not;
+
+use error::{InitError, EtherCatError};
+
+use error::{ErrorIterator, ErrorGenerator};
 
 use SOEM_sys::{
 	boolean,
@@ -24,6 +33,8 @@ use SOEM_sys::{
 	ecx_config_map_group,
 	ecx_configdc,
 	ecx_context,
+	ecx_elist2string,
+	ecx_iserror,
 	ecx_init,
 	ecx_portt,
 	int16,
@@ -48,40 +59,6 @@ pub type UInt16 = uint16;
 pub type UInt32 = uint32;
 pub type UInt64 = uint64;
 pub type UInt8 = uint8;
-
-#[derive(Debug)]
-pub enum Error {
-	InitError,
-	EtherCatNoFrame,
-	EtherCatOtherFrame,
-	EtherCatError,
-	CStringError(NulError),
-}
-
-impl Error {
-	fn from_code(x : i32) -> result::Result<Error, i32> {
-		match x {
-			-1 => Ok(Error::EtherCatNoFrame),
-			-2 => Ok(Error::EtherCatOtherFrame),
-			-3 => Ok(Error::EtherCatError),
-			x  => Err(x),
-		}
-	}
-}
-
-impl fmt::Display for Error {
-	fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-		match *self {
-			Error::InitError          => write!(f, "Initialization error"),
-			Error::EtherCatNoFrame    => write!(f, "No frame returned"),
-			Error::EtherCatOtherFrame => write!(f, "Unknown frame returned"),
-			Error::EtherCatError      => write!(f, "General EtherCat error"),
-			Error::CStringError(ref err) => write!(f, "CString error: {}", err),
-		}
-	}
-}
-
-type Result<T> = result::Result<T, Error>;
 
 #[repr(C)]
 pub struct Port(ecx_portt);
@@ -191,6 +168,7 @@ impl Default for EEPROMSM {
 	}
 }
 
+#[derive(Debug)]
 pub struct Context<'a> {
 	context: ecx_context,
 	_phantom: PhantomData<&'a ()>,
@@ -220,7 +198,7 @@ impl<'a> Context<'a> {
 		pdo_desc: &'a mut PDODesc,
 		eep_sm: &'a mut EEPROMSM,
 		eep_fmmu: &'a mut EEPROMFMMU
-	) -> Result<Self> {
+	) -> result::Result<Self, InitError> {
 		let mut c = Context {
 			context: ecx_context {
 				port:       &mut port.0,
@@ -249,34 +227,52 @@ impl<'a> Context<'a> {
 		};
 
 		CString::new(iface_name)
-			.map_err(|err| Error::CStringError(err))
+			.map_err(|err| InitError::CStringError(err))
 			.and_then(|iface| {
 				match unsafe { ecx_init(&mut c.context, iface.as_ptr()) } {
 					x if x > 0 => Ok(c),
-					_ => Err(Error::InitError),
+					_ => Err(InitError::IOError(std::io::Error::last_os_error())),
 				}
 			})
 	}
 
-	pub fn config_init(&mut self, usetable : bool) -> Result<usize> {
+	pub fn config_init(&mut self, usetable : bool) -> result::Result<usize, EtherCatError> {
 		match unsafe { ecx_config_init(&mut self.context, usetable as UInt8) } {
 			x if x > 0 => Ok(x as usize),
-			x => Err(Error::from_code(x).unwrap()),
+			x => Err(EtherCatError::from_code(x).unwrap()),
 		}
 	}
 
-	pub fn config_map_group(&mut self, io_map : &'a mut [u8; 4096], group : u8) -> usize {
-		unsafe { ecx_config_map_group(
+	pub fn config_map_group<'b>(&'b mut self, io_map : &'a mut [u8; 4096], group : u8) ->
+		result::Result<usize, ErrorIterator<'b>> {
+
+		let iomap_size = unsafe { ecx_config_map_group(
 			&mut self.context,
 			io_map.as_mut_ptr() as *mut std::ffi::c_void,
-			group as UInt8) as usize }
+			group as UInt8) as usize };
+		self.iserror().not().as_result(iomap_size, ErrorIterator::new(self))
 	}
 
-	pub fn config_dc(&mut self) -> bool {
-		unsafe { ecx_configdc(&mut self.context) != 0 }
+	pub fn config_dc<'b>(&'b mut self) ->
+		result::Result<bool, ErrorIterator<'b>> {
+
+		let has_dc = unsafe { ecx_configdc(&mut self.context) != 0 };
+		self.iserror().not().as_result(has_dc, ErrorIterator::new(self))
 	}
 
 	pub fn slave_count(&mut self) -> usize {
 		unsafe { *self.context.slavecount as usize }
+	}
+}
+
+impl<'a> ErrorGenerator for Context<'a> {
+	fn iserror(&mut self) -> bool {
+		unsafe { ecx_iserror(&mut self.context) != 0 }
+	}
+	fn next(&mut self) -> Option<String> {
+		self.iserror()
+			.as_some( unsafe {
+				CStr::from_ptr(ecx_elist2string(&mut self.context)).to_string_lossy().into_owned()
+			} )
 	}
 }

@@ -32,7 +32,7 @@ fn main() {
 
 	let mut io_map: [u8; 4096] = unsafe { zeroed() };
 
-	let mut c = Context::new(matches.value_of("iface").unwrap(),
+	match Context::new(matches.value_of("iface").unwrap(),
 		&mut port,
 		&mut slaves,
 		&mut slavecount,
@@ -47,11 +47,18 @@ fn main() {
 		&mut pdo_assign,
 		&mut pdo_desc,
 		&mut eep_sm,
-		&mut eep_fmmu).unwrap();
+		&mut eep_fmmu) {
 
-	c.config_init(false).unwrap();
-	c.config_map_group(&mut io_map, 0);
-	c.config_dc();
-
-	println!("{} slaves found and configured.", c.slave_count() );
+		Ok(ref mut c) => {
+			match c.config_init(false) {
+				Ok(_) => {
+					c.config_map_group(&mut io_map, 0);
+					c.config_dc();
+					println!("{} slaves found and configured.", c.slave_count());
+				},
+				Err(ref err) => println!("Cannot configure EtherCat: {}", err),
+			}
+		},
+		Err(ref err) => println!("Cannot create EtherCat context: {}", err),
+	};
 }
