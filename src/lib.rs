@@ -14,6 +14,7 @@ use std::mem::zeroed;
 use std::os::raw::c_int;
 use std::ffi::{CString, CStr};
 use std::result;
+use std::slice;
 use std::ops::Not;
 
 use error::{InitError, EtherCatError, ErrorIterator, ErrorGenerator};
@@ -283,10 +284,6 @@ impl<'a> Context<'a> {
 		self.iserror().not().as_result(has_dc, ErrorIterator::new(self))
 	}
 
-	pub fn slave_count(&mut self) -> usize {
-		unsafe { *self.context.slavecount as usize }
-	}
-
 	pub fn statecheck(&mut self, slave: u16, state: EtherCatState, timeout: c_int) -> EtherCatState {
 		let new_state = unsafe { ecx_statecheck(&mut self.context, slave, state as u16, timeout) };
 		num::FromPrimitive::from_u16(new_state).unwrap()
@@ -303,6 +300,18 @@ impl<'a> Context<'a> {
 			Ok(err)  => Err(err),
 			Err(wck) => Ok(wck as u16),
 		}
+	}
+
+	pub fn slaves(&mut self) -> &'a [Slave] {
+		unsafe { slice::from_raw_parts(
+			self.context.slavelist as *const Slave,
+			*self.context.slavecount as usize) }
+	}
+
+	pub fn groups(&mut self) -> &'a [Group] {
+		unsafe { slice::from_raw_parts(
+			self.context.grouplist as *const Group,
+			self.context.maxgroup as usize) }
 	}
 }
 
