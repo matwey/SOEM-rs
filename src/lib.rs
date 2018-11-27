@@ -5,6 +5,9 @@ mod error;
 
 use boolinator::Boolinator;
 
+extern crate num;
+#[macro_use]
+extern crate num_derive;
 use std::marker::PhantomData;
 use std::default::Default;
 use std::mem::zeroed;
@@ -13,9 +16,7 @@ use std::ffi::{CString, CStr};
 use std::result;
 use std::ops::Not;
 
-use error::{InitError, EtherCatError};
-
-use error::{ErrorIterator, ErrorGenerator};
+use error::{InitError, EtherCatError, ErrorIterator, ErrorGenerator};
 
 use SOEM_sys::{
 	boolean,
@@ -28,6 +29,13 @@ use SOEM_sys::{
 	ec_group,
 	ec_idxstack,
 	ec_slave,
+	ec_state_EC_STATE_BOOT,
+	ec_state_EC_STATE_ERROR,
+	ec_state_EC_STATE_INIT,
+	ec_state_EC_STATE_NONE,
+	ec_state_EC_STATE_OPERATIONAL,
+	ec_state_EC_STATE_PRE_OP,
+	ec_state_EC_STATE_SAFE_OP,
 	ecx_close,
 	ecx_config_init,
 	ecx_config_map_group,
@@ -37,6 +45,9 @@ use SOEM_sys::{
 	ecx_iserror,
 	ecx_init,
 	ecx_portt,
+	ecx_statecheck,
+	ecx_readstate,
+	ecx_writestate,
 	int16,
 	int32,
 	int64,
@@ -59,6 +70,18 @@ pub type UInt16 = uint16;
 pub type UInt32 = uint32;
 pub type UInt64 = uint64;
 pub type UInt8 = uint8;
+
+#[derive(FromPrimitive, Debug)]
+#[repr(u16)]
+pub enum EtherCatState {
+	Boot   = ec_state_EC_STATE_BOOT as u16,  // Boot state
+	Init   = ec_state_EC_STATE_INIT as u16,  // Init state
+	None   = ec_state_EC_STATE_NONE as u16,  // No valid state
+	AckOrError = ec_state_EC_STATE_ERROR as u16,   // Error or ACK error
+	Op     = ec_state_EC_STATE_OPERATIONAL as u16, // Operational
+	PreOp  = ec_state_EC_STATE_PRE_OP as u16,      // Pre-operational
+	SafeOp = ec_state_EC_STATE_SAFE_OP as u16,     // Safe-operational
+}
 
 #[repr(C)]
 pub struct Port(ecx_portt);
@@ -262,6 +285,24 @@ impl<'a> Context<'a> {
 
 	pub fn slave_count(&mut self) -> usize {
 		unsafe { *self.context.slavecount as usize }
+	}
+
+	pub fn statecheck(&mut self, slave: u16, state: EtherCatState, timeout: c_int) -> EtherCatState {
+		let new_state = unsafe { ecx_statecheck(&mut self.context, slave, state as u16, timeout) };
+		num::FromPrimitive::from_u16(new_state).unwrap()
+	}
+
+	pub fn readstate(&mut self) -> EtherCatState {
+		let lowest_state = unsafe { ecx_readstate(&mut self.context) as u16 };
+		num::FromPrimitive::from_u16(lowest_state).unwrap()
+	}
+
+	pub fn writestate(&mut self, slave: u16) -> result::Result<u16, EtherCatError> {
+		let ret = unsafe { ecx_writestate(&mut self.context, slave) };
+		match EtherCatError::from_code(ret) {
+			Ok(err)  => Err(err),
+			Err(wck) => Ok(wck as u16),
+		}
 	}
 }
 

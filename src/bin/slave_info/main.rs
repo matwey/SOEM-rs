@@ -55,6 +55,10 @@ fn main() {
 					c.config_map_group(&mut io_map, 0);
 					c.config_dc();
 					println!("{} slaves found and configured.", c.slave_count());
+					let new_state = c.statecheck(0, EtherCatState::SafeOp, 20000 * 3);
+					println!("new_state = {:?}", new_state);
+					let lowest_state = c.readstate();
+					println!("lowest_state = {:?}", lowest_state);
 				},
 				Err(ref err) => println!("Cannot configure EtherCat: {}", err),
 			}
