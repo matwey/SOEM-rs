@@ -6,6 +6,7 @@ use soem::*;
 use std::default::Default;
 use std::os::raw::c_int;
 use std::mem::zeroed;
+use std::iter::Iterator;
 
 fn main() {
 	let mut port: Port = Default::default();
@@ -59,6 +60,11 @@ fn main() {
 					println!("new_state = {:?}", new_state);
 					let lowest_state = c.readstate();
 					println!("lowest_state = {:?}", lowest_state);
+
+					for (i, s) in c.slaves().iter().enumerate() {
+						println!("Slave {}", i);
+						println!("{}", s);
+					}
 				},
 				Err(ref err) => println!("Cannot configure EtherCat: {}", err),
 			}

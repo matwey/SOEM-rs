@@ -16,6 +16,8 @@ use std::ffi::{CString, CStr};
 use std::result;
 use std::slice;
 use std::ops::Not;
+use std::borrow::Cow;
+use std::fmt;
 
 use error::{InitError, EtherCatError, ErrorIterator, ErrorGenerator};
 
@@ -84,6 +86,20 @@ pub enum EtherCatState {
 	SafeOp = ec_state_EC_STATE_SAFE_OP as u16,     // Safe-operational
 }
 
+impl fmt::Display for EtherCatState {
+	fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+		match *self {
+			EtherCatState::Boot   => write!(f, "Boot"),
+			EtherCatState::Init   => write!(f, "Init"),
+			EtherCatState::None   => write!(f, "None"),
+			EtherCatState::AckOrError => write!(f, "Ack or Error"),
+			EtherCatState::Op     => write!(f, "Operational"),
+			EtherCatState::PreOp  => write!(f, "Pre-Operational"),
+			EtherCatState::SafeOp => write!(f, "Safe-Operational"),
+		}
+	}
+}
+
 #[repr(C)]
 pub struct Port(ecx_portt);
 
@@ -99,6 +115,40 @@ pub struct Slave(ec_slave);
 impl Default for Slave {
 	fn default() -> Slave {
 		Slave(unsafe { zeroed() })
+	}
+}
+
+impl Slave {
+	pub fn name(&self) -> Cow<str> {
+		let name_str = unsafe { CStr::from_ptr(self.0.name.as_ptr()) };
+		name_str.to_string_lossy()
+	}
+	pub fn output_size(&self) -> u16 {
+		self.0.Obits
+	}
+	pub fn input_size(&self) -> u16 {
+		self.0.Ibits
+	}
+	pub fn state(&self) -> EtherCatState {
+		num::FromPrimitive::from_u16(self.0.state).unwrap()
+	}
+	pub fn prop_delay(&self) -> i32 {
+		self.0.pdelay
+	}
+	pub fn has_dc(&self) -> bool {
+		self.0.hasdc != 0
+	}
+}
+
+impl fmt::Display for Slave {
+	fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+		writeln!(f, " Name: {}\n Output size: {}bits\n Input size: {}bits\n State: {}\n Delay: {}[ns]\n Has DC: {}",
+			self.name(),
+			self.output_size(),
+			self.input_size(),
+			self.state(),
+			self.prop_delay(),
+			self.has_dc())
 	}
 }
 
@@ -304,7 +354,7 @@ impl<'a> Context<'a> {
 
 	pub fn slaves(&mut self) -> &'a [Slave] {
 		unsafe { slice::from_raw_parts(
-			self.context.slavelist as *const Slave,
+			(self.context.slavelist as *const Slave).offset(1),
 			*self.context.slavecount as usize) }
 	}
 
