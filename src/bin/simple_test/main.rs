@@ -84,20 +84,21 @@ fn main() {
 						}
 					}
 
-					for i in 1..10000 {
-						c.send_processdata();
-						let wck = c.receive_processdata(2000);
-
-						if wck >= expected_wkc {
-							println!("Processdata cycle {}, WKC {} T:{}", i, wck, c.dc_time());
-						}
-
-						sleep(Duration::from_micros(5000));
-					}
-
 					match c.read_state() {
 						EtherCatState::Op => {
 							println!("Operational state reached for all slaves.");
+
+						for i in 1..10000 {
+							c.send_processdata();
+							let wck = c.receive_processdata(2000);
+
+							if wck >= expected_wkc {
+								println!("Processdata cycle {}, WKC {} T:{}", i, wck, c.dc_time());
+							}
+
+							sleep(Duration::from_micros(5000));
+						}
+
 						}
 						_ => {
 							for (i,s) in c.slaves().iter().enumerate() {
