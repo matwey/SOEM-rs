@@ -48,6 +48,8 @@ use SOEM_sys::{
 	ecx_iserror,
 	ecx_init,
 	ecx_portt,
+	ecx_send_processdata,
+	ecx_receive_processdata,
 	ecx_statecheck,
 	ecx_readstate,
 	ecx_writestate,
@@ -174,6 +176,18 @@ impl fmt::Display for Slave {
 
 #[repr(C)]
 pub struct Group(ec_group);
+
+impl Group {
+	pub fn outputs_wkc(&self) -> u16 {
+		self.0.outputsWKC
+	}
+	pub fn inputs_wkc(&self) -> u16 {
+		self.0.inputsWKC
+	}
+	pub fn expected_wkc(&self) -> u16 {
+		self.outputs_wkc() * 2 + self.inputs_wkc()
+	}
+}
 
 impl Default for Group {
 	fn default() -> Group {
@@ -354,22 +368,33 @@ impl<'a> Context<'a> {
 		self.iserror().not().as_result(has_dc, ErrorIterator::new(self))
 	}
 
-	pub fn statecheck(&mut self, slave: u16, state: EtherCatState, timeout: c_int) -> EtherCatState {
+	pub fn check_state(&mut self, slave: u16, state: EtherCatState, timeout: c_int) -> EtherCatState {
 		let new_state = unsafe { ecx_statecheck(&mut self.context, slave, state as u16, timeout) };
 		num::FromPrimitive::from_u16(new_state).unwrap()
 	}
 
-	pub fn readstate(&mut self) -> EtherCatState {
+	pub fn read_state(&mut self) -> EtherCatState {
 		let lowest_state = unsafe { ecx_readstate(&mut self.context) as u16 };
 		num::FromPrimitive::from_u16(lowest_state).unwrap()
 	}
 
-	pub fn writestate(&mut self, slave: u16) -> result::Result<u16, EtherCatError> {
+	pub fn write_state(&mut self, slave: u16) -> result::Result<u16, EtherCatError> {
 		let ret = unsafe { ecx_writestate(&mut self.context, slave) };
 		match EtherCatError::from_code(ret) {
 			Ok(err)  => Err(err),
 			Err(wck) => Ok(wck as u16),
 		}
+	}
+
+	pub fn set_state(&mut self, state: EtherCatState, slave: u16) {
+		let raw_slaves = unsafe { slice::from_raw_parts_mut(
+			self.context.slavelist,
+			*self.context.slavecount as usize) };
+		raw_slaves[slave as usize].state = state as u16;
+	}
+
+	pub fn dc_time(&mut self) -> i64 {
+		unsafe { *self.context.DCtime }
 	}
 
 	pub fn slaves(&mut self) -> &'a [Slave] {
@@ -382,6 +407,14 @@ impl<'a> Context<'a> {
 		unsafe { slice::from_raw_parts(
 			self.context.grouplist as *const Group,
 			self.context.maxgroup as usize) }
+	}
+
+	pub fn send_processdata(&mut self) {
+		unsafe { ecx_send_processdata(&mut self.context) };
+	}
+
+	pub fn receive_processdata(&mut self, timeout: c_int) -> u16 {
+		unsafe { ecx_receive_processdata(&mut self.context, timeout) as u16 }
 	}
 }
 

@@ -7,6 +7,8 @@ use std::default::Default;
 use std::os::raw::c_int;
 use std::mem::zeroed;
 use std::iter::Iterator;
+use std::thread::sleep;
+use std::time::Duration;
 
 fn main() {
 	let mut port: Port = Default::default();
@@ -61,10 +63,57 @@ fn main() {
 					let lowest_state = c.read_state();
 					println!("lowest_state = {:?}", lowest_state);
 
-					for (i, s) in c.slaves().iter().enumerate() {
-						println!("Slave {}", i);
-						println!("{}", s);
+					let expected_wkc = c.groups()[0].expected_wkc();
+					println!("Calculated workcounter {}\n", expected_wkc);
+
+					c.send_processdata();
+					c.receive_processdata(2000);
+
+					println!("Request {} state for all slaves", EtherCatState::Op);
+					c.set_state(EtherCatState::Op, 0);
+					c.write_state(0);
+
+					let try = 40;
+					for _ in 0..try {
+						match c.check_state(0, EtherCatState::Op, 20000 * 3) {
+							EtherCatState::Op => break,
+							_ => {
+								c.send_processdata();
+								c.receive_processdata(2000);
+							}
+						}
 					}
+
+					for i in 1..10000 {
+						c.send_processdata();
+						let wck = c.receive_processdata(2000);
+
+						if wck >= expected_wkc {
+							println!("Processdata cycle {}, WKC {} T:{}", i, wck, c.dc_time());
+						}
+
+						sleep(Duration::from_micros(5000));
+					}
+
+					match c.read_state() {
+						EtherCatState::Op => {
+							println!("Operational state reached for all slaves.");
+						}
+						_ => {
+							for (i,s) in c.slaves().iter().enumerate() {
+								match s.state() {
+									EtherCatState::Op => continue,
+									state => {
+										println!("Slave {} in state {}", i, state);
+									}
+								}
+							}
+						}
+					}
+
+					println!("Request {} state for all slaves", EtherCatState::Init);
+					c.set_state(EtherCatState::Init, 0);
+					c.write_state(0);
 				},
 				Err(ref err) => println!("Cannot configure EtherCat: {}", err),
 			}
