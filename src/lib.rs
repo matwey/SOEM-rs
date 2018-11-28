@@ -147,6 +147,12 @@ impl Slave {
 	pub fn eep_revision(&self) -> u32 {
 		self.0.eep_rev
 	}
+	pub fn parent_port(&self) -> u8 {
+		self.0.parentport
+	}
+	pub fn configured_addr(&self) -> u16 {
+		self.0.configadr
+	}
 }
 
 impl fmt::Display for Slave {
@@ -158,6 +164,10 @@ impl fmt::Display for Slave {
 			self.state(),
 			self.prop_delay(),
 			self.has_dc())?;
+		if self.has_dc() {
+			writeln!(f, " DCParentport: {}", self.parent_port())?;
+		}
+		writeln!(f, " Configured address: {:04x}", self.configured_addr())?;
 		writeln!(f, " Man: {:08x} ID: {:08x} Rev: {:08x}", self.eep_manufacturer(), self.eep_id(), self.eep_revision())
 	}
 }
