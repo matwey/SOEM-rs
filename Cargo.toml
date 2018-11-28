@@ -3,6 +3,9 @@ name = "soem"
 version = "0.1.0"
 authors = ["Matwey V. Kornilov <matwey.kornilov@gmail.com>"]
 license = "GPL-2.0-only"
+description = "SOEM in Rust"
+documentation = "http://docs.rs/soem"
+repository = "https://github.com/matwey/SOEM-rs"
 
 [dependencies]
 boolinator = "^2.4"
