@@ -138,6 +138,15 @@ impl Slave {
 	pub fn has_dc(&self) -> bool {
 		self.0.hasdc != 0
 	}
+	pub fn eep_manufacturer(&self) -> u32 {
+		self.0.eep_man
+	}
+	pub fn eep_id(&self) -> u32 {
+		self.0.eep_id
+	}
+	pub fn eep_revision(&self) -> u32 {
+		self.0.eep_rev
+	}
 }
 
 impl fmt::Display for Slave {
@@ -148,7 +157,8 @@ impl fmt::Display for Slave {
 			self.input_size(),
 			self.state(),
 			self.prop_delay(),
-			self.has_dc())
+			self.has_dc())?;
+		writeln!(f, " Man: {:08x} ID: {:08x} Rev: {:08x}", self.eep_manufacturer(), self.eep_id(), self.eep_revision())
 	}
 }
 
