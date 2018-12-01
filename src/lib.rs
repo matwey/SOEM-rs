@@ -23,14 +23,14 @@ use error::{InitError, EtherCatError, ErrorIterator, ErrorGenerator};
 
 use SOEM_sys::{
 	boolean,
-	ec_PDOassign,
-	ec_PDOdesc,
-	ec_SMcommtype,
-	ec_eepromFMMU,
-	ec_eepromSM,
-	ec_ering,
+	ec_PDOassignt,
+	ec_PDOdesct,
+	ec_SMcommtypet,
+	ec_eepromFMMUt,
+	ec_eepromSMt,
+	ec_eringt,
 	ec_group,
-	ec_idxstack,
+	ec_idxstackT,
 	ec_slave,
 	ec_state_EC_STATE_BOOT,
 	ec_state_EC_STATE_ERROR,
@@ -214,7 +214,7 @@ impl Default for ESIMap {
 }
 
 #[repr(C)]
-pub struct ERing(ec_ering);
+pub struct ERing(ec_eringt);
 
 impl Default for ERing {
 	fn default() -> ERing {
@@ -223,7 +223,7 @@ impl Default for ERing {
 }
 
 #[repr(C)]
-pub struct IdxStack(ec_idxstack);
+pub struct IdxStack(ec_idxstackT);
 
 impl Default for IdxStack {
 	fn default() -> IdxStack {
@@ -232,7 +232,7 @@ impl Default for IdxStack {
 }
 
 #[repr(C)]
-pub struct PDOAssign(ec_PDOassign);
+pub struct PDOAssign(ec_PDOassignt);
 
 impl Default for PDOAssign {
 	fn default() -> PDOAssign {
@@ -241,7 +241,7 @@ impl Default for PDOAssign {
 }
 
 #[repr(C)]
-pub struct PDODesc(ec_PDOdesc);
+pub struct PDODesc(ec_PDOdesct);
 
 impl Default for PDODesc {
 	fn default() -> PDODesc {
@@ -250,7 +250,7 @@ impl Default for PDODesc {
 }
 
 #[repr(C)]
-pub struct SMCommType(ec_SMcommtype);
+pub struct SMCommType(ec_SMcommtypet);
 
 impl Default for SMCommType {
 	fn default() -> SMCommType {
@@ -259,7 +259,7 @@ impl Default for SMCommType {
 }
 
 #[repr(C)]
-pub struct EEPROMFMMU(ec_eepromFMMU);
+pub struct EEPROMFMMU(ec_eepromFMMUt);
 
 impl Default for EEPROMFMMU {
 	fn default() -> EEPROMFMMU {
@@ -268,7 +268,7 @@ impl Default for EEPROMFMMU {
 }
 
 #[repr(C)]
-pub struct EEPROMSM(ec_eepromSM);
+pub struct EEPROMSM(ec_eepromSMt);
 
 impl Default for EEPROMSM {
 	fn default() -> EEPROMSM {
