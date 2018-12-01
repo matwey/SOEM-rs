@@ -5,3 +5,15 @@ rust:
 - stable
 script:
 - cargo test
+before_deploy:
+- cargo package
+deploy:
+  provider: script
+  script: cargo publish --token "$CRATES_IO_TOKEN"
+  skip_cleanup: true
+  on:
+    tags: true
+    all_branches: true
+env:
+  global:
+    secure: ZGgsC6GhkZTJVWF330MkB8sYFTsB1Q8Icj2FGHCdmoQDeYOAmMerp/KRVuSU69tkEumMv/dkWh8wZ6La9WNIvZVKwZc4mM/9exZuhhaCPkWLsSYQFRzghwaHEtL81pJLA7YgTO/2b0QIqie4Tyi7HhlNX0/vUEC8SRIZJMPx8/ewVs6vkWMqmakol0P09eMzVJvo2+7Ix2XpMOXcrzZ3Gd+ksmdvqInprPUE2g9ed4QgYFjeIDWuUIBaszDUmrI1XdnkjjtAkF8UCa4gT7FPu5c+IpuJeSawHkt79xDZeKPrzGF7fnEce2g57pMU60h+gmAzfJMqCTVvaztLznY7WdjHxsS472uhbwel6iZAvA40VxNV8/lfN6+EB9mhFnpgjR2oylZVM6ULEcTHMh9Y+gLk+sN/HBz2yLx07sKhsO927oaUSEwc/xXZNX+0AkkrRBgpBkCEp9xpyKfvoPfp93+TE8jF2WEvTQ2mf3DyXRgZC/g2NYqA1gO4ik59qCSEqrpGGPiQkYNCUHuwodYT2RXzuafz5inIHU5zcdGW6aY+MJ+W585+K3XayqIqqpLaKTnkxrYAHEQqRUXX/Kcrdg6zUwSODpkeyf9SX4znZrLnT3ra5IGDm5zfm1RPb1oxjRujATtFKmvHotZlkGSxZlENppZHXvxdCai2btiYkWg=
