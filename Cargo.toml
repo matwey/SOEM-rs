@@ -6,6 +6,7 @@ license = "GPL-2.0-only"
 description = "SOEM in Rust"
 documentation = "http://docs.rs/soem"
 repository = "https://github.com/matwey/SOEM-rs"
+readme = "README.md"
 
 [badges]
 travis-ci = { repository = "matwey/SOEM-rs", branch = "master" }
