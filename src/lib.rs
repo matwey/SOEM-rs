@@ -10,6 +10,7 @@ extern crate num;
 extern crate num_derive;
 use std::marker::PhantomData;
 use std::default::Default;
+use std::mem;
 use std::mem::zeroed;
 use std::os::raw::c_int;
 use std::ffi::{CString, CStr};
@@ -39,17 +40,19 @@ use SOEM_sys::{
 	ec_state_EC_STATE_OPERATIONAL,
 	ec_state_EC_STATE_PRE_OP,
 	ec_state_EC_STATE_SAFE_OP,
+	ecx_SDOread,
+	ecx_SDOwrite,
 	ecx_close,
 	ecx_config_init,
 	ecx_config_map_group,
 	ecx_configdc,
 	ecx_context,
 	ecx_elist2string,
-	ecx_iserror,
 	ecx_init,
+	ecx_iserror,
 	ecx_portt,
-	ecx_send_processdata,
 	ecx_receive_processdata,
+	ecx_send_processdata,
 	ecx_statecheck,
 	ecx_readstate,
 	ecx_writestate,
@@ -415,6 +418,31 @@ impl<'a> Context<'a> {
 
 	pub fn receive_processdata(&mut self, timeout: c_int) -> u16 {
 		unsafe { ecx_receive_processdata(&mut self.context, timeout) as u16 }
+	}
+
+	pub fn write_sdo<'b, T: num::PrimInt + ?Sized>(&'b mut self, slave: u16, index: u16, subindex: u8, value: &T, timeout: c_int) ->
+		result::Result<(), ErrorIterator<'b>> {
+
+		let mut value_le = value.to_le();
+		let psize = mem::size_of_val(&value_le) as c_int;
+		let value_ptr = &mut value_le as *mut T;
+
+		unsafe { ecx_SDOwrite(&mut self.context, slave, index, subindex, 0 as boolean, psize, value_ptr as *mut std::ffi::c_void, timeout) };
+
+		self.iserror().not().as_result((), ErrorIterator::new(self))
+	}
+
+	pub fn read_sdo<'b, T: num::PrimInt + ?Sized>(&'b mut self, slave: u16, index: u16, subindex: u8, timeout: c_int) ->
+		result::Result<T, ErrorIterator<'b>> {
+
+		let mut value_le : T = unsafe { zeroed() };
+		let mut psize = mem::size_of_val(&value_le) as c_int;
+		let psize_ptr = &mut psize as *mut c_int;
+		let value_ptr = &mut value_le as *mut T;
+
+		unsafe { ecx_SDOread(&mut self.context, slave, index, subindex, 0 as boolean, psize_ptr, value_ptr as *mut std::ffi::c_void, timeout) };
+
+		self.iserror().not().as_result(num::PrimInt::from_le(value_le), ErrorIterator::new(self))
 	}
 }
 
