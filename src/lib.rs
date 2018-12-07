@@ -134,6 +134,14 @@ impl Slave {
 	pub fn input_size(&self) -> u16 {
 		self.0.Ibits
 	}
+	pub fn outputs<'a>(&'a self) -> &'a [u8] {
+		let size = (if self.0.Obytes == 0 && self.0.Obits > 0 { 1 } else { self.0.Obytes }) as usize;
+		unsafe { slice::from_raw_parts_mut(self.0.outputs, size) }
+	}
+	pub fn inputs<'a>(&'a self) -> &'a [u8] {
+		let size = (if self.0.Ibytes == 0 && self.0.Ibits > 0 { 1 } else { self.0.Ibytes }) as usize;
+		unsafe { slice::from_raw_parts_mut(self.0.inputs, size) }
+	}
 	pub fn state(&self) -> EtherCatState {
 		num::FromPrimitive::from_u16(self.0.state).unwrap()
 	}
