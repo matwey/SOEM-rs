@@ -340,7 +340,9 @@ impl<'a> Context<'a> {
 				PDOdesc:    &mut pdo_desc.0,
 				eepSM:      &mut eep_sm.0,
 				eepFMMU:    &mut eep_fmmu.0,
-				FOEhook:    Default::default()
+				FOEhook:    Default::default(),
+				EOEhook:    Default::default(),
+				manualstatechange: Default::default()
 			},
 			_phantom: Default::default()
 		};
