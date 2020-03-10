@@ -1,26 +1,24 @@
-extern crate SOEM_sys;
-extern crate boolinator;
-
 mod error;
 
 use boolinator::Boolinator;
 
-extern crate num;
 #[macro_use]
 extern crate num_derive;
-use std::borrow::Cow;
-use std::default::Default;
-use std::ffi::{CStr, CString};
-use std::fmt;
-use std::marker::PhantomData;
-use std::mem;
-use std::mem::zeroed;
-use std::ops::Not;
-use std::os::raw::c_int;
-use std::result;
-use std::slice;
 
-use error::{ErrorGenerator, ErrorIterator, EtherCatError, InitError};
+use std::{
+    borrow::Cow,
+    default::Default,
+    ffi::{CStr, CString},
+    fmt,
+    marker::PhantomData,
+    mem,
+    mem::zeroed,
+    ops::Not,
+    os::raw::c_int,
+    result, slice,
+};
+
+use crate::error::{ErrorGenerator, ErrorIterator, EtherCatError, InitError};
 
 #[rustfmt::skip]
 use SOEM_sys::{

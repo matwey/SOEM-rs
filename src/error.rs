@@ -12,10 +12,10 @@ pub trait ErrorGenerator: fmt::Debug {
 }
 
 #[derive(Debug)]
-pub struct ErrorIterator<'a>(&'a mut ErrorGenerator);
+pub struct ErrorIterator<'a>(&'a mut dyn ErrorGenerator);
 
 impl<'a> ErrorIterator<'a> {
-    pub fn new(generator: &'a mut ErrorGenerator) -> Self {
+    pub fn new(generator: &'a mut dyn ErrorGenerator) -> Self {
         ErrorIterator(generator)
     }
 

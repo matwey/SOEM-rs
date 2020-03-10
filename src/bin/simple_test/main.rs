@@ -101,8 +101,8 @@ fn simple_test(iface_name: &str) -> i32 {
         Ok(_) => (),
     };
 
-    let try = 40;
-    for _ in 0..try {
+    let r#try = 40;
+    for _ in 0..r#try {
         match c.check_state(0, EtherCatState::Op, 20000 * 3) {
             EtherCatState::Op => break,
             _ => {
