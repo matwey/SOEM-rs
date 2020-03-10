@@ -14,11 +14,13 @@ travis-ci = { repository = "matwey/SOEM-rs", branch = "master" }
 
 [dependencies]
 boolinator = "^2.4"
-clap = "^2.32"
 SOEM-sys = "0.1.2"
 num = "^0.2"
 num-traits = "^0.2"
 num-derive = "^0.2"
+
+[dev-dependencies]
+clap = "2"
 
 [patch.crates-io]
 SOEM-sys = { git = "https://github.com/slowtec/SOEM-sys" }
