@@ -134,13 +134,13 @@ impl Slave {
         let name_str = unsafe { CStr::from_ptr(self.0.name.as_ptr()) };
         name_str.to_string_lossy()
     }
-    pub fn output_size(&self) -> u16 {
+    pub const fn output_size(&self) -> u16 {
         self.0.Obits
     }
-    pub fn input_size(&self) -> u16 {
+    pub const fn input_size(&self) -> u16 {
         self.0.Ibits
     }
-    pub fn outputs<'a>(&'a self) -> &'a mut [u8] {
+    pub fn outputs(&self) -> &mut [u8] {
         let size = (if self.0.Obytes == 0 && self.0.Obits > 0 {
             1
         } else {
@@ -148,7 +148,7 @@ impl Slave {
         }) as usize;
         unsafe { slice::from_raw_parts_mut(self.0.outputs, size) }
     }
-    pub fn inputs<'a>(&'a self) -> &'a [u8] {
+    pub fn inputs(&self) -> &[u8] {
         let size = (if self.0.Ibytes == 0 && self.0.Ibits > 0 {
             1
         } else {
@@ -159,25 +159,25 @@ impl Slave {
     pub fn state(&self) -> EtherCatState {
         num::FromPrimitive::from_u16(self.0.state).unwrap()
     }
-    pub fn prop_delay(&self) -> i32 {
+    pub const fn prop_delay(&self) -> i32 {
         self.0.pdelay
     }
-    pub fn has_dc(&self) -> bool {
+    pub const fn has_dc(&self) -> bool {
         self.0.hasdc != 0
     }
-    pub fn eep_manufacturer(&self) -> u32 {
+    pub const fn eep_manufacturer(&self) -> u32 {
         self.0.eep_man
     }
-    pub fn eep_id(&self) -> u32 {
+    pub const fn eep_id(&self) -> u32 {
         self.0.eep_id
     }
-    pub fn eep_revision(&self) -> u32 {
+    pub const fn eep_revision(&self) -> u32 {
         self.0.eep_rev
     }
-    pub fn parent_port(&self) -> u8 {
+    pub const fn parent_port(&self) -> u8 {
         self.0.parentport
     }
-    pub fn configured_addr(&self) -> u16 {
+    pub const fn configured_addr(&self) -> u16 {
         self.0.configadr
     }
 }
@@ -209,13 +209,13 @@ impl fmt::Display for Slave {
 pub struct Group(ec_group);
 
 impl Group {
-    pub fn outputs_wkc(&self) -> u16 {
+    pub const fn outputs_wkc(&self) -> u16 {
         self.0.outputsWKC
     }
-    pub fn inputs_wkc(&self) -> u16 {
+    pub const fn inputs_wkc(&self) -> u16 {
         self.0.inputsWKC
     }
-    pub fn expected_wkc(&self) -> u16 {
+    pub const fn expected_wkc(&self) -> u16 {
         self.outputs_wkc() * 2 + self.inputs_wkc()
     }
 }
@@ -313,7 +313,7 @@ pub struct Context<'a> {
     _phantom: PhantomData<&'a ()>,
 }
 
-impl<'a> Drop for Context<'a> {
+impl Drop for Context<'_> {
     fn drop(&mut self) {
         unsafe { ecx_close(&mut self.context) };
     }
@@ -369,7 +369,7 @@ impl<'a> Context<'a> {
 		};
 
         CString::new(iface_name)
-            .map_err(|err| InitError::CStringError(err))
+            .map_err(InitError::CStringError)
             .and_then(
                 |iface| match unsafe { ecx_init(&mut c.context, iface.as_ptr()) } {
                     x if x > 0 => Ok(c),
@@ -402,7 +402,7 @@ impl<'a> Context<'a> {
             .as_result(iomap_size, ErrorIterator::new(self))
     }
 
-    pub fn config_dc<'b>(&'b mut self) -> result::Result<bool, ErrorIterator<'b>> {
+    pub fn config_dc<'b>(&'b mut self) -> Result<bool, ErrorIterator<'b>> {
         let has_dc = unsafe { ecx_configdc(&mut self.context) != 0 };
         self.iserror()
             .not()
@@ -424,7 +424,7 @@ impl<'a> Context<'a> {
         num::FromPrimitive::from_u16(lowest_state).unwrap()
     }
 
-    pub fn write_state(&mut self, slave: u16) -> result::Result<u16, EtherCatError> {
+    pub fn write_state(&mut self, slave: u16) -> Result<u16, EtherCatError> {
         let ret = unsafe { ecx_writestate(&mut self.context, slave) };
         match EtherCatError::from_code(ret) {
             Ok(err) => Err(err),
@@ -452,7 +452,7 @@ impl<'a> Context<'a> {
         }
     }
 
-    pub fn groups(&mut self) -> &'a [Group] {
+    pub fn groups(&mut self) -> &[Group] {
         unsafe {
             slice::from_raw_parts(
                 self.context.grouplist as *const Group,
@@ -528,7 +528,7 @@ impl<'a> Context<'a> {
     }
 }
 
-impl<'a> ErrorGenerator for Context<'a> {
+impl ErrorGenerator for Context<'_> {
     fn iserror(&mut self) -> bool {
         unsafe { ecx_iserror(&mut self.context) != 0 }
     }
