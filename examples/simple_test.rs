@@ -3,12 +3,9 @@ extern crate soem;
 
 use clap::{App, Arg};
 use soem::*;
-use std::default::Default;
-use std::iter::Iterator;
-use std::mem::zeroed;
-use std::os::raw::c_int;
-use std::thread::sleep;
-use std::time::Duration;
+use std::{
+    default::Default, iter::Iterator, mem::zeroed, os::raw::c_int, thread::sleep, time::Duration,
+};
 
 fn simple_test(iface_name: &str) -> i32 {
     let mut port: Port = Default::default();
@@ -19,8 +16,8 @@ fn simple_test(iface_name: &str) -> i32 {
     let mut esimap: ESIMap = Default::default();
     let mut elist: ERing = Default::default();
     let mut idxstack: IdxStack = Default::default();
-    let mut ecaterror: Boolean = Default::default();
-    let mut dc_time: Int64 = Default::default();
+    let ecaterror = false;
+    let mut dc_time: i64 = Default::default();
     let mut sm_commtype: SMCommType = Default::default();
     let mut pdo_assign: PDOAssign = Default::default();
     let mut pdo_desc: PDODesc = Default::default();
@@ -39,7 +36,7 @@ fn simple_test(iface_name: &str) -> i32 {
         &mut esimap,
         &mut elist,
         &mut idxstack,
-        &mut ecaterror,
+        ecaterror,
         &mut dc_time,
         &mut sm_commtype,
         &mut pdo_assign,
