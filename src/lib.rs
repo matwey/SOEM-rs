@@ -78,16 +78,23 @@ pub type UInt32 = uint32;
 pub type UInt64 = uint64;
 pub type UInt8 = uint8;
 
-#[derive(FromPrimitive, Debug)]
+#[derive(FromPrimitive, Debug, PartialEq, Clone, Copy)]
 #[repr(u16)]
 pub enum EtherCatState {
-    Boot = ec_state_EC_STATE_BOOT as u16,        // Boot state
-    Init = ec_state_EC_STATE_INIT as u16,        // Init state
-    None = ec_state_EC_STATE_NONE as u16,        // No valid state
-    AckOrError = ec_state_EC_STATE_ERROR as u16, // Error or ACK error
-    Op = ec_state_EC_STATE_OPERATIONAL as u16,   // Operational
-    PreOp = ec_state_EC_STATE_PRE_OP as u16,     // Pre-operational
-    SafeOp = ec_state_EC_STATE_SAFE_OP as u16,   // Safe-operational
+    /// Boot state
+    Boot = ec_state_EC_STATE_BOOT as u16,
+    /// Init state
+    Init = ec_state_EC_STATE_INIT as u16,
+    /// No valid state
+    None = ec_state_EC_STATE_NONE as u16,
+    /// Error or ACK error
+    AckOrError = ec_state_EC_STATE_ERROR as u16,
+    /// Operational
+    Op = ec_state_EC_STATE_OPERATIONAL as u16,
+    /// Pre-operational
+    PreOp = ec_state_EC_STATE_PRE_OP as u16,
+    /// Safe-operational
+    SafeOp = ec_state_EC_STATE_SAFE_OP as u16,
 }
 
 impl fmt::Display for EtherCatState {
