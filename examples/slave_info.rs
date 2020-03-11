@@ -3,45 +3,14 @@ extern crate soem;
 
 use clap::{App, Arg};
 use soem::*;
-use std::{default::Default, iter::Iterator, mem::zeroed, os::raw::c_int};
+use std::{default::Default, iter::Iterator, mem::zeroed};
 
 fn slave_info(iface_name: &str) -> i32 {
-    let mut port: Port = Default::default();
-    let mut slaves: [Slave; 8] = Default::default();
-    let mut slavecount: c_int = Default::default();
-    let mut groups: [Group; 2] = Default::default();
-    let mut esibuf: ESIBuf = Default::default();
-    let mut esimap: ESIMap = Default::default();
-    let mut elist: ERing = Default::default();
-    let mut idxstack: IdxStack = Default::default();
-    let ecaterror = false;
-    let mut dc_time: i64 = Default::default();
-    let mut sm_commtype: SMCommType = Default::default();
-    let mut pdo_assign: PDOAssign = Default::default();
-    let mut pdo_desc: PDODesc = Default::default();
-    let mut eep_sm: EEPROMSM = Default::default();
-    let mut eep_fmmu: EEPROMFMMU = Default::default();
-
     let mut io_map: [u8; 4096] = unsafe { zeroed() };
 
-    let mut c = match Context::new(
-        iface_name,
-        &mut port,
-        &mut slaves,
-        &mut slavecount,
-        &mut groups,
-        &mut esibuf,
-        &mut esimap,
-        &mut elist,
-        &mut idxstack,
-        ecaterror,
-        &mut dc_time,
-        &mut sm_commtype,
-        &mut pdo_assign,
-        &mut pdo_desc,
-        &mut eep_sm,
-        &mut eep_fmmu,
-    ) {
+    let mut c = Context::default();
+
+    match c.init(iface_name) {
         Err(ref err) => {
             println!("Cannot create EtherCat context: {}", err);
             return 1;
