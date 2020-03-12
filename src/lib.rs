@@ -102,10 +102,10 @@ impl Slave {
         let name_str = unsafe { CStr::from_ptr(self.0.name.as_ptr()) };
         name_str.to_string_lossy()
     }
-    pub fn output_size(&self) -> u16 {
+    pub const fn output_size(&self) -> u16 {
         self.0.Obits
     }
-    pub fn input_size(&self) -> u16 {
+    pub const fn input_size(&self) -> u16 {
         self.0.Ibits
     }
     pub fn outputs(&mut self) -> &mut [u8] {
@@ -127,25 +127,25 @@ impl Slave {
     pub fn state(&self) -> EtherCatState {
         num::FromPrimitive::from_u16(self.0.state).unwrap()
     }
-    pub fn prop_delay(&self) -> i32 {
+    pub const fn prop_delay(&self) -> i32 {
         self.0.pdelay
     }
-    pub fn has_dc(&self) -> bool {
+    pub const fn has_dc(&self) -> bool {
         self.0.hasdc != 0
     }
-    pub fn eep_manufacturer(&self) -> u32 {
+    pub const fn eep_manufacturer(&self) -> u32 {
         self.0.eep_man
     }
-    pub fn eep_id(&self) -> u32 {
+    pub const fn eep_id(&self) -> u32 {
         self.0.eep_id
     }
-    pub fn eep_revision(&self) -> u32 {
+    pub const fn eep_revision(&self) -> u32 {
         self.0.eep_rev
     }
-    pub fn parent_port(&self) -> u8 {
+    pub const fn parent_port(&self) -> u8 {
         self.0.parentport
     }
-    pub fn configured_addr(&self) -> u16 {
+    pub const fn configured_addr(&self) -> u16 {
         self.0.configadr
     }
 }
