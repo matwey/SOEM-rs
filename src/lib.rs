@@ -20,7 +20,7 @@ use std::os::raw::c_int;
 use std::result;
 use std::slice;
 
-use error::{ErrorGenerator, ErrorIterator, EtherCatError, InitError};
+use crate::error::{ErrorGenerator, ErrorIterator, EtherCatError, InitError};
 
 use SOEM_sys::{
     boolean, ec_PDOassignt, ec_PDOdesct, ec_SMcommtypet, ec_eepromFMMUt, ec_eepromSMt, ec_eringt,

@@ -7,9 +7,7 @@ description = "SOEM in Rust"
 documentation = "http://docs.rs/soem"
 repository = "https://github.com/matwey/SOEM-rs"
 readme = "README.md"
-
-[badges]
-travis-ci = { repository = "matwey/SOEM-rs", branch = "master" }
+edition = "2018"
 
 [dependencies]
 boolinator = "^2.4"
@@ -18,3 +16,6 @@ SOEM-sys = "0.2"
 num = "^0.2"
 num-traits = "^0.2"
 num-derive = "^0.2"
+
+[badges]
+travis-ci = { repository = "matwey/SOEM-rs", branch = "master" }
