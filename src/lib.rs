@@ -24,7 +24,7 @@ use SOEM_sys::{
     ec_state_EC_STATE_PRE_OP, ec_state_EC_STATE_SAFE_OP, ecx_SDOread, ecx_SDOwrite, ecx_close,
     ecx_config_init, ecx_config_map_group, ecx_configdc, ecx_context, ecx_elist2string, ecx_init,
     ecx_iserror, ecx_portt, ecx_readstate, ecx_receive_processdata, ecx_send_processdata,
-    ecx_statecheck, ecx_writestate, int16, int32, int64, uint16, uint32, uint64, uint8,
+    ecx_statecheck, ecx_writestate,
 };
 
 /** size of EEPROM bitmap cache */
@@ -33,13 +33,6 @@ const EC_MAXEEPBITMAP: usize = 128;
 const EC_MAXEEPBUF: usize = EC_MAXEEPBITMAP << 5;
 
 pub type Boolean = boolean;
-pub type Int16 = int16;
-pub type Int32 = int32;
-pub type Int64 = int64;
-pub type UInt16 = uint16;
-pub type UInt32 = uint32;
-pub type UInt64 = uint64;
-pub type UInt8 = uint8;
 
 #[derive(FromPrimitive, Debug, PartialEq, Clone, Copy)]
 #[repr(u16)]
@@ -190,7 +183,7 @@ impl Default for Group {
 }
 
 #[repr(C)]
-pub struct ESIBuf([UInt8; EC_MAXEEPBUF]);
+pub struct ESIBuf([u8; EC_MAXEEPBUF]);
 
 impl Default for ESIBuf {
     fn default() -> ESIBuf {
@@ -199,7 +192,7 @@ impl Default for ESIBuf {
 }
 
 #[repr(C)]
-pub struct ESIMap([UInt32; EC_MAXEEPBITMAP]);
+pub struct ESIMap([u32; EC_MAXEEPBITMAP]);
 
 impl Default for ESIMap {
     fn default() -> ESIMap {
@@ -294,7 +287,7 @@ impl<'a> Context<'a> {
         elist: &'a mut ERing,
         idxstack: &'a mut IdxStack,
         ecaterror: &'a mut Boolean,
-        dc_time: &'a mut Int64,
+        dc_time: &'a mut i64,
         sm_commtype: &'a mut SMCommType,
         pdo_assign: &'a mut PDOAssign,
         pdo_desc: &'a mut PDODesc,
@@ -341,7 +334,7 @@ impl<'a> Context<'a> {
     }
 
     pub fn config_init(&mut self, usetable: bool) -> result::Result<usize, EtherCatError> {
-        match unsafe { ecx_config_init(&mut self.context, usetable as UInt8) } {
+        match unsafe { ecx_config_init(&mut self.context, usetable as u8) } {
             x if x > 0 => Ok(x as usize),
             x => Err(EtherCatError::from_code(x).unwrap()),
         }
@@ -356,7 +349,7 @@ impl<'a> Context<'a> {
             ecx_config_map_group(
                 &mut self.context,
                 io_map.as_mut_ptr() as *mut std::ffi::c_void,
-                group as UInt8,
+                group as u8,
             ) as usize
         };
         self.iserror()
