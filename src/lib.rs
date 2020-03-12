@@ -172,13 +172,13 @@ impl fmt::Display for Slave {
 pub struct Group(ec_group);
 
 impl Group {
-    pub fn outputs_wkc(&self) -> u16 {
+    pub const fn outputs_wkc(&self) -> u16 {
         self.0.outputsWKC
     }
-    pub fn inputs_wkc(&self) -> u16 {
+    pub const fn inputs_wkc(&self) -> u16 {
         self.0.inputsWKC
     }
-    pub fn expected_wkc(&self) -> u16 {
+    pub const fn expected_wkc(&self) -> u16 {
         self.outputs_wkc() * 2 + self.inputs_wkc()
     }
 }
