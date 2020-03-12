@@ -116,7 +116,7 @@ impl Slave {
         }) as usize;
         unsafe { slice::from_raw_parts_mut(self.0.outputs, size) }
     }
-    pub fn inputs<'a>(&'a self) -> &'a [u8] {
+    pub fn inputs(&self) -> &[u8] {
         let size = (if self.0.Ibytes == 0 && self.0.Ibits > 0 {
             1
         } else {
@@ -336,7 +336,7 @@ impl<'a> Context<'a> {
         };
 
         CString::new(iface_name)
-            .map_err(|err| InitError::CStringError(err))
+            .map_err(InitError::CStringError)
             .and_then(
                 |iface| match unsafe { ecx_init(&mut c.context, iface.as_ptr()) } {
                     x if x > 0 => Ok(c),
@@ -369,7 +369,7 @@ impl<'a> Context<'a> {
             .as_result(iomap_size, ErrorIterator::new(self))
     }
 
-    pub fn config_dc<'b>(&'b mut self) -> result::Result<bool, ErrorIterator<'b>> {
+    pub fn config_dc(&mut self) -> result::Result<bool, ErrorIterator<'_>> {
         let has_dc = unsafe { ecx_configdc(&mut self.context) != 0 };
         self.iserror()
             .not()
@@ -464,13 +464,13 @@ impl<'a> Context<'a> {
         self.iserror().not().as_result((), ErrorIterator::new(self))
     }
 
-    pub fn read_sdo<'b, T: num::PrimInt + ?Sized>(
-        &'b mut self,
+    pub fn read_sdo<T: num::PrimInt + ?Sized>(
+        &mut self,
         slave: u16,
         index: u16,
         subindex: u8,
         timeout: c_int,
-    ) -> result::Result<T, ErrorIterator<'b>> {
+    ) -> result::Result<T, ErrorIterator<'_>> {
         let mut value_le: T = unsafe { zeroed() };
         let mut psize = mem::size_of_val(&value_le) as c_int;
         let psize_ptr = &mut psize as *mut c_int;
