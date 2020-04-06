@@ -1,10 +1,4 @@
-use std::error;
-use std::ffi::NulError;
-use std::fmt;
-use std::io;
-use std::iter::Iterator;
-use std::option::Option;
-use std::result;
+use std::{error, ffi::NulError, fmt, io};
 
 pub trait ErrorGenerator: fmt::Debug {
     fn iserror(&mut self) -> bool;
@@ -70,7 +64,7 @@ impl error::Error for InitError {
     }
 }
 
-#[derive(Debug)]
+#[derive(Debug, PartialEq)]
 pub enum EtherCatError {
     NoFrame,
     OtherFrame,
@@ -78,7 +72,7 @@ pub enum EtherCatError {
 }
 
 impl EtherCatError {
-    pub fn from_code(x: i32) -> result::Result<EtherCatError, i32> {
+    pub fn from_code(x: i32) -> Result<EtherCatError, i32> {
         match x {
             -1 => Ok(EtherCatError::NoFrame),
             -2 => Ok(EtherCatError::OtherFrame),
