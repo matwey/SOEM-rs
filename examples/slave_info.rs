@@ -18,7 +18,7 @@ fn slave_info(iface_name: &str) -> i32 {
     let mut elist: ERing = Default::default();
     let mut idxstack: IdxStack = Default::default();
     let mut ecaterror: Boolean = Default::default();
-    let mut dc_time: Int64 = Default::default();
+    let mut dc_time: i64 = Default::default();
     let mut sm_commtype: SMCommType = Default::default();
     let mut pdo_assign: PDOAssign = Default::default();
     let mut pdo_desc: PDODesc = Default::default();
