@@ -398,10 +398,10 @@ impl<'a> Context<'a> {
         unsafe { *self.context.DCtime }
     }
 
-    pub fn slaves(&mut self) -> &'a [Slave] {
+    pub fn slaves(&mut self) -> &mut [Slave] {
         unsafe {
-            slice::from_raw_parts(
-                (self.context.slavelist as *const Slave).offset(1),
+            slice::from_raw_parts_mut(
+                (self.context.slavelist as *mut Slave).offset(1),
                 *self.context.slavecount as usize,
             )
         }
