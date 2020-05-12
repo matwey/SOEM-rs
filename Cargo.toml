@@ -1,6 +1,6 @@
 [package]
 name = "soem"
-version = "0.2.0"
+version = "0.3.0"
 authors = ["Matwey V. Kornilov <matwey.kornilov@gmail.com>"]
 license = "GPL-2.0-only"
 description = "SOEM in Rust"
